@@ -1,3 +1,10 @@
+/*
+Package logruscls provides logrus hook for tencent cls.
+
+It has these top-level structs:
+	Hook
+	CLSClient
+*/
 package logruscls
 
 import (
@@ -10,6 +17,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/chuangbo/logruscls/pb"
 
 	"github.com/golang/protobuf/proto"
 )
@@ -34,7 +43,7 @@ func NewCLSClient(region, secretID, secretKey string) *CLSClient {
 }
 
 // UploadStructuredLog upload structured log to tencent CLS
-func (c *CLSClient) UploadStructuredLog(topicID string, logGroupList *LogGroupList) error {
+func (c *CLSClient) UploadStructuredLog(topicID string, logGroupList *pb.LogGroupList) error {
 	if topicID == "" {
 		return errors.New("topic empty")
 	}

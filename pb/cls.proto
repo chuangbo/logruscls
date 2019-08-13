@@ -3,7 +3,7 @@
 
 syntax = "proto2";
 
-package logruscls;
+package pb;
 
 message Log {
     message Content

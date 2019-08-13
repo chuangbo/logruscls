@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/chuangbo/logruscls/pb"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/sirupsen/logrus"
 )
@@ -20,7 +22,7 @@ type Hook struct {
 	delay time.Duration
 
 	cls  *CLSClient
-	logs chan *Log
+	logs chan *pb.Log
 }
 
 // NewHook creates a hook to be added to an instance of logger
@@ -36,7 +38,7 @@ func NewHook(topicID, region, secretID, secretKey string, batch int, delay time.
 		delay: delay,
 
 		// double buffer
-		logs: make(chan *Log, batch*2),
+		logs: make(chan *pb.Log, batch*2),
 		cls:  NewCLSClient(region, secretID, secretKey),
 	}
 
@@ -63,7 +65,7 @@ func (hook *Hook) Levels() []logrus.Level {
 // startSender
 func (hook *Hook) startSender() {
 	for {
-		logs := []*Log{}
+		logs := []*pb.Log{}
 		t := time.NewTimer(hook.delay)
 
 	receiveLoop:
@@ -83,9 +85,9 @@ func (hook *Hook) startSender() {
 			}
 		}
 
-		logGroupList := &LogGroupList{
-			LogGroupList: []*LogGroup{
-				&LogGroup{
+		logGroupList := &pb.LogGroupList{
+			LogGroupList: []*pb.LogGroup{
+				&pb.LogGroup{
 					Logs: logs,
 				},
 			},
@@ -98,17 +100,17 @@ func (hook *Hook) startSender() {
 	}
 }
 
-func entryToLog(entry *logrus.Entry) *Log {
-	contents := []*Log_Content{}
+func entryToLog(entry *logrus.Entry) *pb.Log {
+	contents := []*pb.Log_Content{}
 
 	// message
-	contents = append(contents, &Log_Content{
+	contents = append(contents, &pb.Log_Content{
 		Key:   proto.String("message"),
 		Value: proto.String(entry.Message),
 	})
 
 	// level
-	contents = append(contents, &Log_Content{
+	contents = append(contents, &pb.Log_Content{
 		Key:   proto.String("level"),
 		Value: proto.String(entry.Level.String()),
 	})
@@ -117,14 +119,14 @@ func entryToLog(entry *logrus.Entry) *Log {
 	for k, v := range entry.Data {
 		contents = append(
 			contents,
-			&Log_Content{
+			&pb.Log_Content{
 				Key:   proto.String(k),
 				Value: proto.String(fmt.Sprintf("%v", v)),
 			},
 		)
 	}
 
-	return &Log{
+	return &pb.Log{
 		Time:     proto.Int64(entry.Time.UnixNano() / int64(time.Millisecond)),
 		Contents: contents,
 	}
