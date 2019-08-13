@@ -37,8 +37,9 @@ Of course there is also a logrus-free golang cls client `CLSClient` for you to u
 
 ## Todos
 
-* Signature for headers and query string
-* MD5 of content
+* signature for headers and query string
+* content md5
+* tests
 
 ## License
 
