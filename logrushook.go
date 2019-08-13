@@ -87,7 +87,7 @@ func (hook *Hook) startSender() {
 
 		logGroupList := &pb.LogGroupList{
 			LogGroupList: []*pb.LogGroup{
-				&pb.LogGroup{
+				{
 					Logs: logs,
 				},
 			},
