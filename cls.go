@@ -4,6 +4,7 @@ Package logruscls provides logrus hook for tencent cls.
 It has these top-level structs:
 	Hook
 	CLSClient
+	CLSAsyncClient
 */
 package logruscls
 
@@ -31,28 +32,44 @@ var httpClient = &http.Client{
 type CLSClient struct {
 	URL                 string
 	SecretID, SecretKey string
+	TopicID             string
 }
 
 // NewCLSClient create a cls client
-func NewCLSClient(region, secretID, secretKey string) *CLSClient {
+func NewCLSClient(region, secretID, secretKey, topicID string) (*CLSClient, error) {
+	if region == "" || secretID == "" || secretKey == "" || topicID == "" {
+		return nil, errors.New("please specific cls configurations")
+	}
+
 	return &CLSClient{
 		URL:       fmt.Sprintf("http://%s.cls.myqcloud.com/", region),
 		SecretID:  secretID,
 		SecretKey: secretKey,
-	}
+		TopicID:   topicID,
+	}, nil
+}
+
+// Log upload one log directly to cls
+func (c *CLSClient) Log(log *pb.Log) error {
+	return c.UploadStructuredLog(
+		&pb.LogGroupList{
+			LogGroupList: []*pb.LogGroup{
+				{
+					Logs: []*pb.Log{log},
+				},
+			},
+		},
+	)
 }
 
 // UploadStructuredLog upload structured log to tencent CLS
-func (c *CLSClient) UploadStructuredLog(topicID string, logGroupList *pb.LogGroupList) error {
-	if topicID == "" {
-		return errors.New("topic empty")
-	}
+func (c *CLSClient) UploadStructuredLog(logGroupList *pb.LogGroupList) error {
 	requestBody, err := proto.Marshal(logGroupList)
 	if err != nil {
 		return err
 	}
 
-	r, err := http.NewRequest("POST", fmt.Sprintf("%sstructuredlog?topic_id=%s", c.URL, topicID), bytes.NewReader(requestBody))
+	r, err := http.NewRequest("POST", fmt.Sprintf("%sstructuredlog?topic_id=%s", c.URL, c.TopicID), bytes.NewReader(requestBody))
 	if err != nil {
 		return err
 	}
