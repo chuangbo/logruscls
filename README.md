@@ -72,8 +72,9 @@ For more API please refer to [godoc](https://godoc.org/github.com/chuangbo/logru
 
 ## Todos
 
-* signature for headers and query string
-* content md5
+* ~~signature for headers and query string~~ (md5 doesn't work so kind of pointless)
+* ~~content md5~~ (seems upload using even wrong random md5 checksum work)
+* ~~lz4 compress~~ (doesn't work)
 * tests
 
 ## License
